@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "bCHvCdX/DAA=",
+  "success": true,
+  "projectFilePath": "C:\\Projects\\dan\\OneYearProjects\\Project 1 - EventFlow\\EventFlow\\src\\CommandService\\CommandService.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\daniel.hajek\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.3\\microsoft.aspnetcore.openapi.9.0.3.nupkg.sha512",
+    "C:\\Users\\daniel.hajek\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
