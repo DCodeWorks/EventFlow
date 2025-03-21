@@ -1,3 +1,8 @@
+using EventFlow.Application.CommandHandlers;
+using EventFlow.Infrastructure.Messaging;
+using EventFlow.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(CreateTaskCommandHandler).Assembly);
+});
+
+builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+builder.Services.AddSingleton<ITaskRepository>();
 
 var app = builder.Build();
 
