@@ -10,5 +10,6 @@ namespace EventFlow.Infrastructure.Persistence
     public interface ITaskRepository
     {
         Task SaveAsync(TaskAggregate taskAggregate);
+        Task<TaskAggregate> GetAsync(Guid taskId);
     }
 }

@@ -22,16 +22,19 @@ namespace EventFlow.Application.CommandHandlers
         }
         public async Task<bool> Handle(CreateTaskCommand command, CancellationToken cancellationToken)
         {
+            Console.WriteLine("Handle started");
             // Create a new TaskAggregate using the command data
             var taskAggregate = new TaskAggregate(command.TaskId, command.Title, command.Description);
 
             // Persist the aggregate to the event store (repository)
             await _taskRepository.SaveAsync(taskAggregate);
+            Console.WriteLine("task agregate saved");
 
             // Publish all recorded domain events to Kafka
             foreach (var domainEvent in taskAggregate.DomainEvents)
             {
                 await _kafkaProducer.PublishEventAsync(domainEvent);
+                Console.WriteLine("Event published to Kafka producer");
             }
 
             return true;

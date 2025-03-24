@@ -17,7 +17,7 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
-builder.Services.AddSingleton<ITaskRepository>();
+builder.Services.AddSingleton<ITaskRepository, InMemoryTaskRepository>();
 
 var app = builder.Build();
 

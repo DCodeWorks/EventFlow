@@ -10,7 +10,7 @@ namespace EventFlow.Domain.Commands
 {
     public record CreateTaskCommand(Guid TaskId, string Title, string? Description) : IRequest<bool>;
 
-    public record UpdateTaskCommand(Guid TaskId, string Title, string? Description);
+    public record UpdateTaskCommand(Guid TaskId, string Title, string? Description) : IRequest<bool>;
 
-    public record CompleteTaskCommand(Guid TaskId);
+    public record CompleteTaskCommand(Guid TaskId) : IRequest<bool>;
 }
