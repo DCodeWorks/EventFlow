@@ -1,4 +1,5 @@
 ﻿using EventFlow.Domain.Commands;
+using EventFlow.Domain.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +45,18 @@ namespace EventFlow.Api.Controllers
             if (result)
                 return Ok("Task completed successfully.");
             return BadRequest("Error completing task.");
+        }
+
+        [HttpGet("{taskId}")]
+        public async Task<IActionResult> GetTask(Guid taskId)
+        {
+            var command = new GetTaskQuery(taskId);
+
+            var result = await _mediator.Send(command);
+
+            if (result != null)
+                return Ok(result);
+            return NotFound("Task Not Found!");
         }
     }
 }
