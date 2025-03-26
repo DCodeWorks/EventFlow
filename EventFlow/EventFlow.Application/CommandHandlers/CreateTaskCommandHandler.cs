@@ -24,7 +24,7 @@ namespace EventFlow.Application.CommandHandlers
         {
             Console.WriteLine("Handle started");
             // Create a new TaskAggregate using the command data
-            var taskAggregate = new TaskAggregate(command.TaskId, command.Title, command.Description);
+            var taskAggregate = TaskAggregate.Create(command.TaskId, command.Title, command.Description);
 
             // Persist the aggregate to the event store (repository)
             await _taskRepository.SaveAsync(taskAggregate);

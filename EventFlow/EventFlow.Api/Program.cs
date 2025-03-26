@@ -1,6 +1,7 @@
 using EventFlow.Application.CommandHandlers;
 using EventFlow.Infrastructure.Messaging;
 using EventFlow.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +18,11 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
-builder.Services.AddSingleton<ITaskRepository, InMemoryTaskRepository>();
+
+//DB setup
+var connectionString = builder.Configuration.GetConnectionString("EventFlowDb");
+builder.Services.AddDbContext<EventFlowDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddScoped<ITaskRepository, SqlTaskRepository>();
 
 var app = builder.Build();
 
