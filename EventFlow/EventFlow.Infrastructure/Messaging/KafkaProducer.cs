@@ -1,11 +1,8 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Polly;
+using Polly.Retry;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EventFlow.Infrastructure.Messaging
 {
@@ -13,6 +10,9 @@ namespace EventFlow.Infrastructure.Messaging
     {
         private readonly IProducer<Null, string> _producer;
         private readonly string _topic;
+        private readonly string _dlqTopic;
+
+        private readonly AsyncRetryPolicy _retryPolicy;
 
         public KafkaProducer(IConfiguration configuration)
         {
@@ -21,14 +21,51 @@ namespace EventFlow.Infrastructure.Messaging
                 BootstrapServers = configuration["Kafka:BootstrapServers"]
             };
 
-            _producer = new ProducerBuilder<Null,string>(config).Build();
+            _producer = new ProducerBuilder<Null, string>(config).Build();
             _topic = configuration["Kafka:Topic"];
+            _dlqTopic = configuration["Kafka:DLQTopic"];
+
+            _retryPolicy = Policy
+                .Handle<ProduceException<Null, string>>()
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    Console.WriteLine($"Retry {retryCount} after {timeSpan.TotalSeconds}s due to: {exception.Message}");
+                });
         }
         public async Task PublishEventAsync(object domainEvent)
         {
             // Serialize the event to JSON
             var jsonEvent = JsonSerializer.Serialize(domainEvent);
-            await _producer.ProduceAsync(_topic, new Message<Null, string> { Value = jsonEvent });
+
+            var message = new Message<Null, string> { Value = jsonEvent };
+
+            try
+            {
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await _producer.ProduceAsync(_topic, message);
+                });
+            }
+            catch (ProduceException<Null, string> ex)
+            {
+                Console.WriteLine($"Publishing to DLQ due to: {ex.Message}");
+                await PublishToDLQAsync(message);
+            }
+        }
+
+        private async Task PublishToDLQAsync(Message<Null, string> message)
+        {
+            try
+            {
+                
+                await _producer.ProduceAsync(_dlqTopic, message);
+                Console.WriteLine("Message published to Dead Letter Queue.");
+            }
+            catch (ProduceException<Null, string> ex)
+            {
+                Console.WriteLine($"Failed to publish to DLQ: {ex.Message}");
+            }
         }
     }
 }

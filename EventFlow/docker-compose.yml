@@ -21,6 +21,18 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+  topic-init:
+    image: apache/kafka:latest
+    depends_on:
+      - broker
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+      sleep 10 && 
+      /opt/kafka/bin/kafka-topics.sh --create --topic eventflow-events --bootstrap-server broker:29092 --partitions 1 --replication-factor 1 &&
+      /opt/kafka/bin/kafka-topics.sh --create --topic events-dlq --bootstrap-server broker:29092 --partitions 1 --replication-factor 1
+      "
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: sqlserver
