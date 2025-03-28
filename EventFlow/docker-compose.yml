@@ -21,7 +21,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
   topic-init:
     image: apache/kafka:latest
     depends_on:

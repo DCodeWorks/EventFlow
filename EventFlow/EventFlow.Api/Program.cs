@@ -21,10 +21,25 @@ builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
 //DB setup
 var connectionString = builder.Configuration.GetConnectionString("EventFlowDb");
-builder.Services.AddDbContext<EventFlowDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<EventFlowDbContext>(options =>
+{
+    options.UseSqlServer(connectionString);
+});
 builder.Services.AddScoped<ITaskRepository, SqlTaskRepository>();
 
+// Register the background service for read model consumption
+builder.Services.AddHostedService<TaskReadModelConsumer>();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EventFlowDbContext>();
+    if (!dbContext.Database.CanConnect())
+    {
+        dbContext.Database.Migrate();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

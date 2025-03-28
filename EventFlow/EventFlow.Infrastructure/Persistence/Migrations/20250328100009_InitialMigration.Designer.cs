@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(EventFlowDbContext))]
-    [Migration("20250325084938_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250328100009_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,6 +48,33 @@ namespace EventFlow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("StoredEvents");
+                });
+
+            modelBuilder.Entity("EventFlow.Infrastructure.ReadModel.TaskReadModel", b =>
+                {
+                    b.Property<Guid>("TaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TaskId");
+
+                    b.ToTable("TaskReadModels");
                 });
 #pragma warning restore 612, 618
         }

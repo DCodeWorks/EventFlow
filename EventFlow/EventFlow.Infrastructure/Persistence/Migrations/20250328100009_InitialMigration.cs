@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EventFlow.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,6 +25,22 @@ namespace EventFlow.Infrastructure.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_StoredEvents", x => x.Id);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "TaskReadModels",
+                columns: table => new
+                {
+                    TaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsCompleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskReadModels", x => x.TaskId);
+                });
         }
 
         /// <inheritdoc />
@@ -32,6 +48,9 @@ namespace EventFlow.Infrastructure.Persistence.Migrations
         {
             migrationBuilder.DropTable(
                 name: "StoredEvents");
+
+            migrationBuilder.DropTable(
+                name: "TaskReadModels");
         }
     }
 }

@@ -46,6 +46,33 @@ namespace EventFlow.Infrastructure.Persistence.Migrations
 
                     b.ToTable("StoredEvents");
                 });
+
+            modelBuilder.Entity("EventFlow.Infrastructure.ReadModel.TaskReadModel", b =>
+                {
+                    b.Property<Guid>("TaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TaskId");
+
+                    b.ToTable("TaskReadModels");
+                });
 #pragma warning restore 612, 618
         }
     }
