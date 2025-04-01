@@ -41,6 +41,21 @@ namespace EventFlow.Infrastructure.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_TaskReadModels", x => x.TaskId);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "TaskSnapshots",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SnapshotData = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastEventSequence = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskSnapshots", x => x.Id);
+                });
         }
 
         /// <inheritdoc />
@@ -51,6 +66,9 @@ namespace EventFlow.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "TaskReadModels");
+
+            migrationBuilder.DropTable(
+                name: "TaskSnapshots");
         }
     }
 }

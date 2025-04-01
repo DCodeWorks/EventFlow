@@ -11,5 +11,6 @@ namespace EventFlow.Infrastructure.Persistence
     {
         Task SaveAsync(TaskAggregate taskAggregate);
         Task<TaskAggregate> GetAsync(Guid taskId);
+        Task<TaskAggregate> GetAsyncWithSnapshot(Guid taskId);
     }
 }

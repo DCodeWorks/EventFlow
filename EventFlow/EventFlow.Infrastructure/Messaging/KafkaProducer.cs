@@ -35,10 +35,15 @@ namespace EventFlow.Infrastructure.Messaging
         }
         public async Task PublishEventAsync(object domainEvent)
         {
+            var wrapper = new DomainEventWrapper
+            {
+                EventType = domainEvent.GetType().Name,
+                Data = JsonSerializer.SerializeToElement(domainEvent)
+            };
             // Serialize the event to JSON
-            var jsonEvent = JsonSerializer.Serialize(domainEvent);
+            var jsonWrapper = JsonSerializer.Serialize(wrapper);
 
-            var message = new Message<Null, string> { Value = jsonEvent };
+            var message = new Message<Null, string> { Value = jsonWrapper };
 
             try
             {

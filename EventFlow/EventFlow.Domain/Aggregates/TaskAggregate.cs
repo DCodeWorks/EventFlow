@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EventFlow.Domain.Aggregates
@@ -14,6 +15,9 @@ namespace EventFlow.Domain.Aggregates
         public string? Description { get; private set; }
         public bool IsCompleted { get; private set; }
         public DateTime CreatedAt { get; private set; }
+
+
+        public int Version { get; private set; } = 0;   // Version (number of applied events) for snapshot purposes
 
 
         private readonly List<object> _domainEvents = new();
@@ -41,10 +45,43 @@ namespace EventFlow.Domain.Aggregates
             }
             return aggregate;
         }
+
+        public static TaskAggregate RehydrateFromSnapshot(TaskSnapshot snapshot)
+        {
+            var aggregate = new TaskAggregate();
+            aggregate.ApplySnapshot(snapshot);
+            return aggregate;
+        }
+
         private void RaiseEvent(object domainEvent)
         {
             Apply(domainEvent);
             _domainEvents.Add(domainEvent);
+        }
+
+        public TaskSnapshot CreateSnapshot()
+        {
+            return new TaskSnapshot
+            {
+                AggregateId = this.TaskId,
+                SnapshotData = JsonSerializer.Serialize(this),
+                LastEventSequence = this.Version,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        public void ApplySnapshot(TaskSnapshot snapshot)
+        {
+            var restored = JsonSerializer.Deserialize<TaskAggregate>(snapshot.SnapshotData);
+            if (restored != null)
+            {
+                this.TaskId = restored.TaskId;
+                this.Title = restored.Title;
+                this.Description = restored.Description;
+                this.IsCompleted = restored.IsCompleted;
+                this.CreatedAt = restored.CreatedAt;
+                this.Version = snapshot.LastEventSequence;
+            }
         }
 
         // Apply events to update the state of the aggregate
@@ -65,6 +102,7 @@ namespace EventFlow.Domain.Aggregates
                     IsCompleted = true;
                     break;
             }
+            Version++;
         }
 
         public static TaskAggregate Create(Guid taskId, string title, string? description)
@@ -81,10 +119,9 @@ namespace EventFlow.Domain.Aggregates
 
         public void Complete()
         {
-            if (!IsCompleted)
-            {
-                RaiseEvent(new TaskCompletedEvent(TaskId, DateTime.UtcNow));
-            }
+
+            RaiseEvent(new TaskCompletedEvent(TaskId, DateTime.UtcNow));
+
         }
     }
 }

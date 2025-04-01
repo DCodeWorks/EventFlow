@@ -63,67 +63,69 @@ namespace EventFlow.Infrastructure.Messaging
 
         private async Task ProcessEventAsync(string message)
         {
-            // You might need a wrapper that includes EventType info.
-            // For simplicity, assume the message is JSON and we determine the type.
-            // In a production system, include metadata such as EventType.
+            DomainEventWrapper wrapper;
+            try
+            {
+                wrapper = JsonSerializer.Deserialize<DomainEventWrapper>(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deserializing wrapper: {ex.Message}");
+                return;
+            }
+
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<EventFlowDbContext>();
 
-            // For example, try to deserialize into a TaskCreatedEvent first
-            try
+            switch (wrapper.EventType)
             {
-                var createdEvent = JsonSerializer.Deserialize<TaskCreatedEvent>(message);
-                if (createdEvent != null && createdEvent.TaskId != Guid.Empty)
-                {
-                    // Insert new record
-                    dbContext.TaskReadModels.Add(new TaskReadModel
+                case "TaskCreatedEvent":
+                    var createdEvent = wrapper.Data.Deserialize<TaskCreatedEvent>();
+                    if (createdEvent != null && createdEvent.TaskId != Guid.Empty)
                     {
-                        TaskId = createdEvent.TaskId,
-                        Title = createdEvent.Title,
-                        Description = "",
-                        IsCompleted = false,
-                        CreatedAt = createdEvent.CreatedAt
-                    });
-                    await dbContext.SaveChangesAsync();
-                    return;
-                }
-            }
-            catch { /* Not a TaskCreatedEvent, try next type */ }
-
-            try
-            {
-                var updatedEvent = JsonSerializer.Deserialize<TaskUpdatedEvent>(message);
-                if (updatedEvent != null && updatedEvent.TaskId != Guid.Empty)
-                {
-                    var task = await dbContext.TaskReadModels.FirstOrDefaultAsync(t => t.TaskId == updatedEvent.TaskId);
-                    if (task != null)
-                    {
-                        task.Title = updatedEvent.Title;
-                        task.Description = updatedEvent.Description;
-                        task.UpdatedAt = updatedEvent.UpdatedAt;
+                        // Insert new record
+                        dbContext.TaskReadModels.Add(new TaskReadModel
+                        {
+                            TaskId = createdEvent.TaskId,
+                            Title = createdEvent.Title,
+                            Description = "",
+                            IsCompleted = false,
+                            CreatedAt = createdEvent.CreatedAt
+                        });
                         await dbContext.SaveChangesAsync();
                     }
-                    return;
-                }
-            }
-            catch { /* Not a TaskUpdatedEvent, try next type */ }
-
-            try
-            {
-                var completedEvent = JsonSerializer.Deserialize<TaskCompletedEvent>(message);
-                if (completedEvent != null && completedEvent.TaskId != Guid.Empty)
-                {
-                    var task = await dbContext.TaskReadModels.FirstOrDefaultAsync(t => t.TaskId == completedEvent.TaskId);
-                    if (task != null)
+                    break;
+                case "TaskUpdatedEvent":
+                    var updatedEvent = wrapper.Data.Deserialize<TaskUpdatedEvent>();
+                    if (updatedEvent != null && updatedEvent.TaskId != Guid.Empty)
                     {
-                        task.IsCompleted = true;
-                        task.UpdatedAt = completedEvent.CompletedAt;
-                        await dbContext.SaveChangesAsync();
+                        var task = await dbContext.TaskReadModels.FirstOrDefaultAsync(t => t.TaskId == updatedEvent.TaskId);
+                        if (task != null)
+                        {
+                            task.Title = updatedEvent.Title;
+                            task.Description = updatedEvent.Description;
+                            task.UpdatedAt = updatedEvent.UpdatedAt;
+                            await dbContext.SaveChangesAsync();
+                        }
                     }
-                    return;
-                }
+                    break;
+                case "TaskCompletedEvent":
+                    var completedEvent = wrapper.Data.Deserialize<TaskCompletedEvent>();
+                    if (completedEvent != null && completedEvent.TaskId != Guid.Empty)
+                    {
+                        var task = await dbContext.TaskReadModels.FirstOrDefaultAsync(t => t.TaskId == completedEvent.TaskId);
+                        if (task != null)
+                        {
+                            task.IsCompleted = true;
+                            task.UpdatedAt = completedEvent.CompletedAt;
+                            await dbContext.SaveChangesAsync();
+                        }
+                    }
+                    break;
+                default:
+                    Console.WriteLine($"Unknown event type: {wrapper.EventType}");
+                    break;
             }
-            catch { /* Unrecognized event */ }
         }
     }
 }

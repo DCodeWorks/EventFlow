@@ -1,4 +1,5 @@
-﻿using EventFlow.Infrastructure.ReadModel;
+﻿using EventFlow.Domain;
+using EventFlow.Infrastructure.ReadModel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace EventFlow.Infrastructure.Persistence
 
         public DbSet<StoredEvent> StoredEvents { get; set; }
         public DbSet<TaskReadModel> TaskReadModels { get; set; }
+        public DbSet<TaskSnapshot> TaskSnapshots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +35,14 @@ namespace EventFlow.Infrastructure.Persistence
             {
                 entity.HasKey(e => e.TaskId);
                 entity.Property(e => e.Title).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired();
+            });
+            modelBuilder.Entity<TaskSnapshot>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.AggregateId).IsRequired();
+                entity.Property(e => e.SnapshotData).IsRequired();
+                entity.Property(e => e.LastEventSequence).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
             });
         }

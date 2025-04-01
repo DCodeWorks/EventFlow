@@ -19,7 +19,7 @@ namespace EventFlow.Application.QueryHandlers
         }
         public async Task<TaskAggregate> Handle(GetTaskQuery request, CancellationToken cancellationToken)
         {
-            return await _taskRepository.GetAsync(request.taskId);
+            return await _taskRepository.GetAsyncWithSnapshot(request.taskId);
         }
     }
 }

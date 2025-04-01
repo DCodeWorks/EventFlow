@@ -23,5 +23,10 @@ namespace EventFlow.Infrastructure.Persistence
             _storage.TryGetValue(taskId, out var taskAggregate);
             return Task.FromResult(taskAggregate);
         }
+
+        public Task<TaskAggregate> GetAsyncWithSnapshot(Guid taskId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
